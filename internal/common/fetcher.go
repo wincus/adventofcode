@@ -47,3 +47,11 @@ func GetData(n int) ([]string, error) {
 	return strings.Split(string(b), "\n"), nil
 
 }
+
+func ShowData(d []string) {
+
+	for _, s := range d {
+		fmt.Printf("%v\n", string(s))
+	}
+
+}
