@@ -3,17 +3,63 @@ package day1
 import (
 	"reflect"
 	"testing"
+
+	"github.com/wincus/adventofcode/internal/common"
 )
 
-type testT struct {
+type Test struct {
+	input []string
+	p     common.Part
+	want  int
+}
+
+type TestC struct {
 	t    int
 	n    int
 	want [][]int
 }
 
-func TestTCombinations(t *testing.T) {
+func TestSolver(t *testing.T) {
 
-	tests := []testT{
+	tests := []Test{
+		{
+			input: []string{
+				"1721",
+				"979",
+				"366",
+				"299",
+				"675",
+				"1456",
+			},
+			p:    common.Part1,
+			want: 514579,
+		},
+		{
+			input: []string{
+				"1721",
+				"979",
+				"366",
+				"299",
+				"675",
+				"1456",
+			},
+			p:    common.Part2,
+			want: 241861950,
+		},
+	}
+
+	for _, test := range tests {
+		got := Solve(test.input, test.p)
+
+		if got != test.want {
+			t.Errorf("got %v, want %v for part %v", got, test.want, test.p)
+		}
+	}
+}
+
+func TestCombinations(t *testing.T) {
+
+	tests := []TestC{
 		{
 			t: 3,
 			n: 6,

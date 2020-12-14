@@ -1,36 +1,36 @@
 package day1
 
 import (
-	"fmt"
 	"log"
 
 	"github.com/wincus/adventofcode/internal/common"
 )
 
 // Solve returns the solutions of Day1
-func Solve() {
+func Solve(s []string, p common.Part) int {
+	var c [][]int
 
-	data, err := common.GetData(1)
-
-	if err != nil {
-		log.Panic(err)
-	}
-
-	intData, err := common.ToInt(data)
+	d, err := common.ToInt(s)
 
 	if err != nil {
 		log.Panic(err)
 	}
 
-	// find combinations with n=2 and n=3
-	for _, t := range []int{2, 3} {
-		c := tCombinations(t, len(intData))
-		for _, i := range c {
-			if m := sum(i, intData); m == 2020 {
-				fmt.Printf("Solution for n=%v: %v\n", t, multiply(i, intData))
-			}
+	if p == common.Part1 {
+		c = tCombinations(2, len(d))
+	}
+
+	if p == common.Part2 {
+		c = tCombinations(3, len(d))
+	}
+
+	for _, i := range c {
+		if m := sum(i, d); m == 2020 {
+			return multiply(i, d)
 		}
 	}
+
+	return -1
 }
 
 func multiply(c, d []int) int {
