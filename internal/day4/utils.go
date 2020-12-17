@@ -201,7 +201,7 @@ func validateHeight(s string, p common.Part) string {
 	if p == common.Part2 {
 		if strings.HasSuffix(s, "cm") {
 
-			v, err := strconv.Atoi(s[:len(s)-2])
+			v, err := strconv.Atoi(strings.TrimSuffix(s, "cm"))
 
 			if err != nil {
 				return ""
@@ -213,8 +213,12 @@ func validateHeight(s string, p common.Part) string {
 				return ""
 			}
 
-		} else if strings.HasSuffix(s, "in") {
-			v, err := strconv.Atoi(s[:len(s)-2])
+			return s
+		}
+
+		if strings.HasSuffix(s, "in") {
+
+			v, err := strconv.Atoi(strings.TrimSuffix(s, "in"))
 
 			if err != nil {
 				return ""
@@ -225,12 +229,12 @@ func validateHeight(s string, p common.Part) string {
 			if err != nil {
 				return ""
 			}
-		} else {
-			return ""
+
+			return s
 		}
 	}
 
-	return s
+	return ""
 }
 
 func validateHairColor(s string, p common.Part) string {
