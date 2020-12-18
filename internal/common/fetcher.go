@@ -3,6 +3,7 @@ package common
 import (
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/url"
 	"os"
@@ -11,6 +12,8 @@ import (
 
 // GetData retrieves data used to solve day n
 func GetData(n int) ([]string, error) {
+
+	var data []string
 
 	h, ok := os.LookupEnv("SESSION")
 
@@ -44,7 +47,11 @@ func GetData(n int) ([]string, error) {
 
 	defer res.Body.Close()
 
-	return strings.Split(string(b), "\n"), nil
+	data = strings.Split(string(b), "\n")
+
+	log.Printf("got %v lines of input data", len(data))
+
+	return data, nil
 
 }
 
