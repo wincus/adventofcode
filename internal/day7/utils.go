@@ -96,6 +96,7 @@ func register(s string) error {
 
 		tokens := strings.Split(line, " ")
 
+		// remove first token if its length is 0
 		if len(tokens[0]) == 0 {
 			tokens = tokens[1:]
 		}
