@@ -25,6 +25,8 @@ const (
 	upright
 )
 
+var directions = [...]direction{up, upleft, left, downleft, down, downright, right, upright}
+
 type layout struct {
 	seats      []seat
 	width      int
@@ -135,7 +137,7 @@ func (l *layout) populate(s int, p common.Part) seat {
 		return floor
 	}
 
-	n := l.countOccupiedNeighbors(s, p)
+	n := l.countNeighbours(s, p)
 
 	// no neighbours
 	if n == 0 {
@@ -150,18 +152,12 @@ func (l *layout) populate(s int, p common.Part) seat {
 	return l.seats[s]
 }
 
-func (l layout) countOccupiedNeighbors(i int, p common.Part) int {
+func (l layout) countNeighbours(i int, p common.Part) int {
 
 	var counter int
 	var n []seat
 
-	if p == common.Part1 {
-		n = l.localNeighbours(i)
-	}
-
-	if p == common.Part2 {
-		n = l.remoteNeighbours(i)
-	}
+	n = l.neighbours(i, p)
 
 	for _, s := range n {
 		if s == occupied {
@@ -186,18 +182,18 @@ func (l layout) count() int {
 }
 
 // i only care for occupied sets
-func (l layout) remoteNeighbours(i int) []seat {
+func (l layout) neighbours(i int, p common.Part) []seat {
 
 	var n = make([]seat, 0, 8)
 
-	for _, dir := range []direction{up, down, left, right, upleft, upright, downleft, downright} {
-		n = append(n, l.directedRemoteNeighour(i, dir))
+	for _, dir := range directions {
+		n = append(n, l.getNeighbour(i, dir, p))
 	}
 
 	return n
 }
 
-func (l layout) directedRemoteNeighour(i int, d direction, p common.Part) seat {
+func (l layout) getNeighbour(i int, d direction, p common.Part) seat {
 
 	var s seat = floor
 
@@ -207,220 +203,179 @@ func (l layout) directedRemoteNeighour(i int, d direction, p common.Part) seat {
 	switch d {
 	case up:
 
-		if y == 0 {
-			return s
-		}
-
-		c := 1
-
 		for {
-			yc := y + c
 
-			ic := convertTo1D(x, yc, l.width)
-
-			if l.seats[ic] == empty || l.seats[ic] == occupied {
-				return l.seats[ic]
-			}
-
-			if xc == l.width-1 || yc == l.width-1 || p == common.Part1 {
+			if y <= 0 {
 				return s
 			}
 
-			c++
-		}
+			y--
 
-		for yc := y - 1; yc >= 0; yc-- {
-
-			ic := convertTo1D(x, yc, l.width)
+			ic := convertTo1D(x, y, l.width)
 
 			if l.seats[ic] == empty || l.seats[ic] == occupied {
 				return l.seats[ic]
+			}
+
+			if p == common.Part1 {
+				return s
 			}
 		}
 
 	case down:
-		if y == l.width {
-			return s
-		}
 
-		for yc := y + 1; yc < l.width; yc++ {
+		for {
 
-			ic := convertTo1D(x, yc, l.width)
+			if y >= l.width-1 {
+				return s
+			}
+
+			y++
+
+			ic := convertTo1D(x, y, l.width)
 
 			if l.seats[ic] == empty || l.seats[ic] == occupied {
 				return l.seats[ic]
+			}
+
+			if p == common.Part1 {
+				return s
 			}
 		}
 
 	case left:
 
-		if x == 0 {
-			return s
-		}
+		for {
 
-		for xc := x - 1; xc >= 0; xc-- {
+			if x <= 0 {
+				return s
+			}
 
-			ic := convertTo1D(xc, y, l.width)
+			x--
+
+			ic := convertTo1D(x, y, l.width)
 
 			if l.seats[ic] == empty || l.seats[ic] == occupied {
 				return l.seats[ic]
+			}
+
+			if p == common.Part1 {
+				return s
 			}
 		}
 
 	case right:
 
-		if x == l.width {
-			return s
-		}
+		for {
 
-		for xc := x + 1; xc < l.width; xc++ {
+			if x >= l.width-1 {
+				return s
+			}
 
-			ic := convertTo1D(xc, y, l.width)
+			x++
+
+			ic := convertTo1D(x, y, l.width)
 
 			if l.seats[ic] == empty || l.seats[ic] == occupied {
 				return l.seats[ic]
+			}
+
+			if p == common.Part1 {
+				return s
 			}
 		}
 
 	case upleft:
 
-		if x == 0 || y == 0 {
-			return s
-		}
-
-		c := 1
-
 		for {
 
-			xc := x - c
-			yc := y - c
+			if x <= 0 || y <= 0 {
+				return s
+			}
 
-			ic := convertTo1D(xc, yc, l.width)
+			x--
+			y--
+
+			ic := convertTo1D(x, y, l.width)
 
 			if l.seats[ic] == empty || l.seats[ic] == occupied {
 				return l.seats[ic]
 			}
 
-			if xc == 0 || yc == 0 {
+			if p == common.Part1 {
 				return s
 			}
-
-			c++
-
 		}
 
 	case upright:
 
-		if x == l.width-1 || y == 0 {
-			return s
-		}
-
-		c := 1
-
 		for {
 
-			xc := x + c
-			yc := y - c
+			if x >= l.width-1 || y <= 0 {
+				return s
+			}
 
-			ic := convertTo1D(xc, yc, l.width)
+			x++
+			y--
+
+			ic := convertTo1D(x, y, l.width)
 
 			if l.seats[ic] == empty || l.seats[ic] == occupied {
 				return l.seats[ic]
 			}
 
-			if xc == l.width-1 || yc == 0 {
+			if p == common.Part1 {
 				return s
 			}
-
-			c++
-
 		}
 
 	case downleft:
 
-		if x == 0 || y == l.width-1 {
-			return s
-		}
-
-		c := 1
-
 		for {
 
-			xc := x - c
-			yc := y + c
+			if x <= 0 || y >= l.width-1 {
+				return s
+			}
 
-			ic := convertTo1D(xc, yc, l.width)
+			x--
+			y++
+
+			ic := convertTo1D(x, y, l.width)
 
 			if l.seats[ic] == empty || l.seats[ic] == occupied {
 				return l.seats[ic]
 			}
 
-			if xc == 0 || yc == l.width-1 {
+			if p == common.Part1 {
 				return s
 			}
-
-			c++
-
 		}
 
 	case downright:
 
-		if x == l.width-1 || y == l.width-1 {
-			return s
-		}
-
-		c := 1
-
 		for {
 
-			xc := x + c
-			yc := y + c
+			if x >= l.width-1 || y >= l.width-1 {
+				return s
+			}
 
-			ic := convertTo1D(xc, yc, l.width)
+			x++
+			y++
+
+			ic := convertTo1D(x, y, l.width)
 
 			if l.seats[ic] == empty || l.seats[ic] == occupied {
 				return l.seats[ic]
 			}
 
-			if xc == l.width-1 || yc == l.width-1 {
+			if p == common.Part1 {
 				return s
 			}
-
-			c++
-
 		}
 
 	}
 
 	return s
-
-}
-
-func (l layout) localNeighbours(i int) []seat {
-
-	var n = make([]seat, 0, 8)
-
-	// convert index into 2D
-	x, y := convertTo2D(i, l.width)
-
-	for xc := x - 1; xc <= x+1; xc++ {
-		for yc := y - 1; yc <= y+1; yc++ {
-
-			if xc < 0 || xc >= l.width || yc < 0 || yc > l.width {
-				continue
-			}
-
-			ic := convertTo1D(xc, yc, l.width)
-
-			if ic < 0 || i == ic || ic >= l.width*l.width {
-				continue
-			}
-
-			n = append(n, l.seats[ic])
-		}
-	}
-
-	return n
 
 }
 
