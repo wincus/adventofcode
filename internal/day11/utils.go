@@ -181,7 +181,6 @@ func (l layout) count() int {
 	return counter
 }
 
-// i only care for occupied sets
 func (l layout) neighbours(i int, p common.Part) []seat {
 
 	var n = make([]seat, 0, 8)
