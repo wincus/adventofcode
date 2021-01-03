@@ -228,6 +228,7 @@ func (l layout) directedRemoteNeighour(i int, d direction, p common.Part) seat {
 
 			c++
 		}
+
 		for yc := y - 1; yc >= 0; yc-- {
 
 			ic := convertTo1D(x, yc, l.width)
