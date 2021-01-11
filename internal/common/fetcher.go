@@ -39,6 +39,10 @@ func GetData(n int) ([]string, error) {
 
 	res, err := c.Do(req)
 
+	if err != nil {
+		return nil, err
+	}
+
 	b, err := ioutil.ReadAll(res.Body)
 
 	if err != nil {

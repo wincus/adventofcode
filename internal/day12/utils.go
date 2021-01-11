@@ -7,73 +7,122 @@ import (
 	"github.com/wincus/adventofcode/internal/common"
 )
 
+type pos struct {
+	dir opcode
+	m   map[opcode]int
+}
+
 type opcode int
 
-type inst struct {
-	action opcode
-	value  int
-}
-
-type nav struct {
-	direction    opcode
-	instructions []inst
-	x, y         int
-}
-
 const (
-	N opcode = iota
+	E opcode = iota
+	N
 	W
 	S
-	E
-	L
-	R
-	F
 )
 
 // Solve returns the solution for day12 problem
 func Solve(s []string, p common.Part) int {
 
-	var n nav
+	var boat pos
+	var wayPoint pos
 
-	n = parse(s)
+	boat.m = make(map[opcode]int)
+	wayPoint.m = make(map[opcode]int)
 
-	n.navigate()
+	// initial WayPoint conditions
+	wayPoint.m[E] = 10
+	wayPoint.m[N] = 1
 
-	return abs(n.x) + abs(n.y)
+	// for each line in input
+	for _, line := range s {
 
-}
-
-func (n *nav) navigate() {
-
-	for _, i := range n.instructions {
-
-		switch i.action {
-
-		case N, S, E, W, F:
-			n.move(i.value, i.action)
-		case L:
-			n.direction = rotate(i.value, n.direction)
-		case R:
-			n.direction = rotate(i.value*-1, n.direction)
+		if len(line) == 0 {
+			continue
 		}
+
+		if p == common.Part1 {
+			err := boat.move(line)
+
+			if err != nil {
+				log.Printf("Warning, could not parse instruction: %v", line)
+			}
+		}
+
+		if p == common.Part2 {
+			err := boat.moveWithWayPoint(line, wayPoint)
+
+			if err != nil {
+				log.Printf("Warning, could not parse instruction: %v", line)
+			}
+
+		}
+
 	}
+
+	return abs(boat.m[E]-boat.m[W]) + abs(boat.m[N]-boat.m[S])
+
 }
 
-func (n *nav) move(v int, o opcode) {
+func (p *pos) move(s string) error {
 
-	switch o {
-	case N:
-		n.y += v
-	case S:
-		n.y -= v
-	case E:
-		n.x += v
-	case W:
-		n.x -= v
-	case F:
-		n.move(v, n.direction)
+	v, err := strconv.Atoi(s[1:])
+
+	if err != nil {
+		return err
 	}
 
+	switch string(s[0]) {
+	case "N":
+		p.m[N] += v
+	case "S":
+		p.m[S] += v
+	case "E":
+		p.m[E] += v
+	case "W":
+		p.m[W] += v
+	case "L":
+		p.dir = rotate(v, p.dir)
+	case "R":
+		p.dir = rotate(-1*v, p.dir)
+	case "F":
+		p.m[p.dir] += v
+	}
+
+	return nil
+
+}
+
+func (p *pos) moveWithWayPoint(s string, w pos) error {
+
+	v, err := strconv.Atoi(s[1:])
+
+	if err != nil {
+		return err
+	}
+
+	switch string(s[0]) {
+	case "N":
+		w.move(s)
+	case "S":
+		w.move(s)
+	case "E":
+		w.move(s)
+	case "W":
+		w.move(s)
+	case "L":
+		w.m[rotate(v, E)], w.m[rotate(v, N)], w.m[rotate(v, W)], w.m[rotate(v, S)] = w.m[E], w.m[N], w.m[W], w.m[S]
+	case "R":
+		nv := -1 * v
+		w.m[rotate(nv, E)], w.m[rotate(nv, N)], w.m[rotate(nv, W)], w.m[rotate(nv, S)] = w.m[E], w.m[N], w.m[W], w.m[S]
+	case "F":
+		p.m[E] += w.m[E] * v
+		p.m[N] += w.m[N] * v
+		p.m[W] += w.m[W] * v
+		p.m[S] += w.m[S] * v
+	}
+
+	return nil
 }
 
 func rotate(n int, o opcode) opcode {
@@ -93,59 +142,4 @@ func abs(x int) int {
 		return -x
 	}
 	return x
-}
-
-func parse(s []string) nav {
-
-	var n nav
-	var r []inst
-
-	for _, line := range s {
-
-		if len(line) == 0 {
-			continue
-		}
-
-		r = append(r, newInst(line))
-
-	}
-
-	n.direction = E // initial direction
-	n.instructions = r
-
-	return n
-}
-
-func newInst(s string) inst {
-
-	var i inst
-
-	switch string(s[0]) {
-	case "N":
-		i.action = N
-	case "S":
-		i.action = S
-	case "E":
-		i.action = E
-	case "W":
-		i.action = W
-	case "L":
-		i.action = L
-	case "R":
-		i.action = R
-	case "F":
-		i.action = F
-	default:
-		log.Printf("action not supported: %v", string(s[0]))
-		return i
-	}
-
-	v, err := strconv.Atoi(s[1:])
-
-	if err != nil {
-		log.Printf("could not parse instruction: %v", err)
-	}
-
-	i.value = v
-	return i
 }
