@@ -35,33 +35,29 @@ func Solve(s []string, p common.Part) int {
 
 	if p == common.Part2 {
 
-		for t := busIDs[0]; true; t += busIDs[0] {
+		t := 1
+		w := 1
 
-			//log.Printf("checking t=%v", t)
+		for i, v := range busIDs {
 
-			if check(t, busIDs) {
-				return t
+			if v == 0 {
+				continue
+			}
+
+			for {
+				if (t+i)%v == 0 {
+					w *= v
+					break
+				}
+
+				t += w
 			}
 		}
+
+		return t
 	}
 
 	return 0
-}
-
-func check(t int, ids []int) bool {
-
-	for i, id := range ids {
-
-		if id == 0 {
-			continue
-		}
-
-		if (t+i)%id != 0 {
-			return false
-		}
-	}
-
-	return true
 }
 
 func parse(s []string) (int, []int, error) {
